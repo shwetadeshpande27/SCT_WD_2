@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<!-- saved from url=(0049)file:///C:/Users/shwet/Downloads/index%20(3).html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SkCroft Technology Calculator</title>
+  <style>
+    /* Reset and base */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      user-select: none;
+      color: #fff;
+    }
+    .calculator {
+      background: #222;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      width: 320px;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+    }
+    .display {
+      background: #121212;
+      border-radius: 12px;
+      font-size: 2.2rem;
+      padding: 20px;
+      text-align: right;
+      overflow-x: auto;
+      min-height: 60px;
+      word-wrap: break-word;
+      color: #7fffd4;
+      font-weight: 600;
+      border: 2px solid #4dd0e1;
+      margin-bottom: 20px;
+    }
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+    }
+    button {
+      font-size: 1.4rem;
+      border: none;
+      border-radius: 12px;
+      padding: 20px 0;
+      cursor: pointer;
+      background: #333;
+      color: #eee;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+      transition: background 0.3s ease, color 0.3s ease;
+      user-select: none;
+    }
+    button.operator {
+      background: #4dd0e1;
+      color: #222;
+      font-weight: 700;
+    }
+    button.equal {
+      background: #ff5722;
+      color: #fff;
+      font-weight: 700;
+      grid-column: span 2;
+    }
+    button.clear {
+      background: #e53935;
+      font-weight: 700;
+    }
+    button.delete {
+      background: #fbc02d;
+      color: #222;
+      font-weight: 700;
+    }
+    button:hover {
+      filter: brightness(1.1);
+    }
+    button:active {
+      transform: scale(0.95);
+    }
+    @media (max-width: 400px) {
+      .calculator {
+        width: 95vw;
+        padding: 15px;
+      }
+      .display {
+        font-size: 1.8rem;
+        padding: 15px;
+        min-height: 50px;
+      }
+      button {
+        font-size: 1.2rem;
+        padding: 15px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator" role="application" aria-label="Calculator">
+    <div id="display" class="display" aria-live="polite" aria-atomic="true" aria-relevant="text">81</div>
+    <div class="buttons">
+      <button type="button" class="clear" id="clear" aria-label="Clear">C</button>
+      <button type="button" class="delete" id="delete" aria-label="Delete">⌫</button>
+      <button type="button" class="operator" data-value="%" aria-label="Modulo">%</button>
+      <button type="button" class="operator" data-value="/" aria-label="Divide">÷</button>
+
+      <button type="button" data-value="7" aria-label="7">7</button>
+      <button type="button" data-value="8" aria-label="8">8</button>
+      <button type="button" data-value="9" aria-label="9">9</button>
+      <button type="button" class="operator" data-value="*" aria-label="Multiply">×</button>
+
+      <button type="button" data-value="4" aria-label="4">4</button>
+      <button type="button" data-value="5" aria-label="5">5</button>
+      <button type="button" data-value="6" aria-label="6">6</button>
+      <button type="button" class="operator" data-value="-" aria-label="Minus">−</button>
+
+      <button type="button" data-value="1" aria-label="1">1</button>
+      <button type="button" data-value="2" aria-label="2">2</button>
+      <button type="button" data-value="3" aria-label="3">3</button>
+      <button type="button" class="operator" data-value="+" aria-label="Plus">+</button>
+
+      <button type="button" data-value="0" aria-label="0" style="grid-column: span 2;">0</button>
+      <button type="button" data-value="." aria-label="Decimal point">.</button>
+      <button type="button" class="equal" id="equals" aria-label="Equals">=</button>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const display = document.getElementById('display');
+      const buttons = document.querySelectorAll('.buttons button');
+      let currentInput = '';
+      let resetNext = false;
+
+      function updateDisplay() {
+        display.textContent = currentInput || '0';
+      }
+
+      function appendValue(value) {
+        if (resetNext) {
+          currentInput = '';
+          resetNext = false;
+        }
+
+        if (value === '.') {
+          // Prevent multiple decimals in the current number
+          const parts = currentInput.split(/[\+\-\*\/\%\÷\×\−\+]/);
+          const lastNumber = parts[parts.length - 1];
+          if (lastNumber.includes('.')) return;
+        }
+
+        // Avoid multiple operators in a row
+        if (['+', '-', '*', '/', '%'].includes(value)) {
+          if (currentInput === '' && value !== '-') {
+            // don't allow starting expression with any operator except minus
+            return;
+          }
+          const lastChar = currentInput.slice(-1);
+          if (['+', '-', '*', '/', '%'].includes(lastChar)) {
+            // Replace last operator with new one
+            currentInput = currentInput.slice(0, -1);
+          }
+        }
+
+        currentInput += value;
+        updateDisplay();
+      }
+
+      function clearInput() {
+        currentInput = '';
+        updateDisplay();
+      }
+
+      function deleteLast() {
+        if (resetNext) {
+          clearInput();
+          resetNext = false;
+          return;
+        }
+        currentInput = currentInput.slice(0, -1);
+        updateDisplay();
+      }
+
+      function calculateResult() {
+        if (!currentInput) return;
+        // Replace unicode operators for calculation
+        let expression = currentInput.replace(/÷/g, '/')
+                                     .replace(/×/g, '*')
+                                     .replace(/−/g, '-')
+                                     .replace(/%/g, '%');
+
+        try {
+          if (!/^[0-9+\-*/%.() ]+$/.test(expression)) {
+            throw new Error('Invalid characters');
+          }
+          let result = Function('"use strict";return (' + expression + ')')();
+          if (result === Infinity || result === -Infinity) {
+            throw new Error('Division by zero');
+          }
+          if (Number.isNaN(result)) {
+            throw new Error('Invalid calculation');
+          }
+          currentInput = result.toString();
+          updateDisplay();
+          resetNext = true;
+        } catch (e) {
+          currentInput = 'Error';
+          updateDisplay();
+          resetNext = true;
+        }
+      }
+
+      buttons.forEach(button => {
+        button.addEventListener('click', () => {
+          const value = button.getAttribute('data-value');
+          if (button.id === 'clear') {
+            clearInput();
+          } else if (button.id === 'delete') {
+            deleteLast();
+          } else if (button.id === 'equals') {
+            calculateResult();
+          } else if (value !== null) {
+            appendValue(value);
+          }
+        });
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if ((e.key >= '0' && e.key <= '9') || e.key === '.') {
+          appendValue(e.key);
+        } else if (['+', '-', '*', '/', '%'].includes(e.key)) {
+          appendValue(e.key);
+        } else if (e.key === 'Enter' || e.key === '=') {
+          e.preventDefault();
+          calculateResult();
+        } else if (e.key === 'Backspace') {
+          deleteLast();
+        } else if (e.key === 'Escape') {
+          clearInput();
+        }
+      });
+    })();
+  </script>
+
+</body></html>
